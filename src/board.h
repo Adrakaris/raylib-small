@@ -12,7 +12,6 @@ struct SubBoard {
     char values[3][3] = {0};
     bool isHovered = false;
     bool isActive = false;
-    bool isAvailable = false;
     char isWon = 0;
 };
 
@@ -25,18 +24,30 @@ private:
     const Color subColorActive = colFromHex(0x4b4b50);
     const Color subColorHovered = colFromHex(0x36363a);
 
-    int boardWidth;
-    float subBoardWidth;
-    Vector2 boardOffset;
+    const Color cellBlank = colFromHex(0x5b5b61);
+    const Color cellX = colFromHex(0xc96767);
+    const Color cellO = colFromHex(0x6d84c9);
 
+
+    // predefined
+    int boardWidth = 260;
+    float subBoardWidth = 80;
+    Vector2 boardOffset {0, 20};
+    float cellGap = 5;
+    
+    // calculated
     float boardGap;
     float halfWidth;
+    float cellWidth;
 
-    SubBoard boards[3][3];
+    float currentTurn = 'X';
+    bool isSelecting = true;
+
+    SubBoard boards[3][3] {};
 
 public:
     // board is supposed to be centered on 0,0
-    Board(int boardWidth = 260, float subBoardWidth = 80, Vector2 boardOffset = Vector2 {0, 20});
+    Board();
 
     void reset();
     void draw();
@@ -46,9 +57,12 @@ public:
 
 private:
     Rectangle getRectOfSubboard(int i, int j);
+    Rectangle getRectOfCell(int parent_i, int parent_j, int i, int j);
     void drawSubBoard(int i, int j);
     void updateMouseInput(Vector2& mousePos);
-    
+    void handleMouseClick(Vector2& mousePos);
+    bool selectBoard(Vector2& mousePos);
+    void makeSelecting();
 };
 
 
