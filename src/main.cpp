@@ -2,7 +2,8 @@
 #include <iostream>
 #include <cstdint>
 
-#include "defs.h"
+#include "util.h"
+#include "board.h"
 
 /*
 Camera notes
@@ -18,23 +19,31 @@ const Color green = colFromHex(0x00ff00);
 
 class Game {
 private:
-    float cameraScale = SCALE/GetScreenHeight();
+    const float cameraScale = SCALE/GetScreenHeight();
+
     Camera2D mainCamera {
         // {0.0f, 0.0f}, {-GetScreenWidth()/2.0f, -GetScreenHeight()/2.0f}, 0.0f, 1.0f/cameraScale
         {0.0f, 0.0f}, {-cameraScale*GetScreenWidth()/2.0f, -cameraScale*GetScreenHeight()/2.0f}, 0.0f, 1.0f/cameraScale
     };  // target, offset, rotation, scale
 
-
+    Font font;
     
+    Board board;
 
 public:
 
     Game() {
+        font = LoadFontEx("assets/font/lora_var.TTF", 96, 0, 0);
+        GenTextureMipmaps(&font.texture);
 
+        std::cout << board << std::endl;
     }
 
     void update(float dt) {
+        Vector2 screenMousePos = GetMousePosition();
+        Vector2 realMousePos = GetScreenToWorld2D(screenMousePos, mainCamera);
 
+        board.update(realMousePos);
     }
 
     void draw() {
@@ -47,7 +56,7 @@ public:
     }
 
     ~Game() {
-
+        UnloadFont(font);
     }
 
 private:
@@ -55,24 +64,10 @@ private:
     void drawMainCamera() {
         BeginMode2D(mainCamera);
 
-        unsigned int colHex = 0x333333;
+        // draw title and stuff
+        DrawTextEx(font, "Tic Tac Toe (Big)", Vector2{-120, -145}, 30, 0, textColorDark);
 
-        for (int i = 50; i >= 0; i-=5) {
-            Color boxCol = colFromHex(colHex);
-            // DrawRectangle(-i, -i, 2*i, 2*i, boxCol);
-            DrawCircle(0, 0, i, boxCol);
-            colHex += 0x220066;
-        }
-
-        for (int i = -160; i <= 160; i+=40) {
-            DrawLine(-1, i, 1, i, green);
-            // DrawRectangle(-5, i-1, 10, 2, green);
-            DrawText(TextFormat("%d", i), 2, i-1, 1, green);
-        }
-        for (int i = -320; i <= 320; i+=40) {
-            DrawLine(i, -1, i, 1, green);
-            DrawText(TextFormat("%d", i), i, 4, 1, green);
-        }
+        board.draw();
 
         EndMode2D();
     }
@@ -81,6 +76,8 @@ private:
 
 
 int main() {
+
+    std::cout << __cplusplus << std::endl;
 
     // InitWindow(720, 480, "Tic Tac Toe Game");
     InitWindow(1440, 960, "Tic Tac Toe Game");

@@ -13,5 +13,7 @@ Color colFromHex(std::uint32_t hexCode);
 // convert RGBA
 Color colFromHexAlpha(std::uint32_t hexCode);
 
+// color definitions
 
+const Color textColorDark {210, 210, 210, 255};
 

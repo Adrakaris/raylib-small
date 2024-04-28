@@ -1,4 +1,4 @@
-#include "defs.h"
+#include "util.h"
 
 
 uint32_t _mask_r = 0xff000000;
@@ -21,3 +21,4 @@ Color colFromHexAlpha(std::uint32_t hexCode) {
     unsigned char alpha = (unsigned char)(hexCode & _mask_a);
     return Color {red, green, blue, alpha};
 }
+
