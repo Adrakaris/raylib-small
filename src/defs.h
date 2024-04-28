@@ -3,15 +3,15 @@
 #include <raylib.h>
 #include <cstdint>
 
-// screen coordinate scale (coordinate values from top to bottom)
-const float SCALE = 60.0f;
+// world coordinate scale (coordinate values from top to bottom)
+const float SCALE = 320.0f;
 
 // colour util functions
-Color colourFromHex(std::uint32_t hexCode);
 
-
-// colours
-const Color BG = {240, 240, 235, 255};
+// convert RGB (A = 255)
+Color colFromHex(std::uint32_t hexCode);
+// convert RGBA
+Color colFromHexAlpha(std::uint32_t hexCode);
 
 
 
