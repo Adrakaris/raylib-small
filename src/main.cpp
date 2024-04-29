@@ -23,7 +23,7 @@ private:
 
     Camera2D mainCamera {
         // {0.0f, 0.0f}, {-GetScreenWidth()/2.0f, -GetScreenHeight()/2.0f}, 0.0f, 1.0f/cameraScale
-        {0.0f, 0.0f}, {-cameraScale*GetScreenWidth()/2.0f, -cameraScale*GetScreenHeight()/2.0f}, 0.0f, 1.0f/cameraScale
+         {0.0f, 0.0f}, {-cameraScale*GetScreenWidth()/2.0f, -cameraScale*GetScreenHeight()/2.0f}, 0.0f, 1.0f/cameraScale
     };  // target, offset, rotation, scale
 
     Font font;
@@ -35,6 +35,8 @@ public:
     Game() {
         font = LoadFontEx("assets/font/lora_var.TTF", 96, 0, 0);
         GenTextureMipmaps(&font.texture);
+
+        board.setFont(font);
 
         std::cout << board << std::endl;
     }

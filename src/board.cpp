@@ -6,6 +6,14 @@ Board::Board() {
     this->boardGap = (float)(boardWidth - 3*subBoardWidth) / 4.0f;
     this->halfWidth = boardWidth / 2.0f;
     this->cellWidth = (subBoardWidth - 3*cellWidth) / 4.0f;
+    
+    scaleShape(dashShape, 4, subBoardWidth);
+    scaleShape(crossShapeAscend, 4, subBoardWidth);
+    scaleShape(crossShapeDescend, 4, subBoardWidth);
+}
+
+void Board::setFont(Font& mainFont) {
+    this->mainFont = mainFont;
 }
 
 
@@ -27,13 +35,43 @@ void Board::draw() {
             drawSubBoard(i, j);
         }
     }
+
+    drawInformation();
+}
+
+
+void Board::drawInformation() {
+    // set corner to right side
+    Vector2 topLeft {
+        boardOffset.x + halfWidth + boardGap,
+        boardOffset.y - halfWidth
+    };
+
+    // current turn:
+    DrawTextEx(mainFont, "Turn", topLeft, 16, 0, textColorDark);
+
+    Color col;
+    switch (currentTurn) {
+        case 'x': col = cellX; break;
+        case 'o': col = cellO; break;
+        default: col = cellBlank;
+    }
+    topLeft.y += 18;
+    DrawRectangleRounded(Rectangle{topLeft.x+4, topLeft.y, cellWidth, cellWidth}, 0.15, 6, col);
+
 }
 
 
 void Board::drawSubBoard(int i, int j) {
     Rectangle rect = getRectOfSubboard(i, j);
 
-    if (boards[i][j].isActive) {
+    if (boards[i][j].wonBy == 'x') {
+        drawWinningBoardX(rect);
+    } else if (boards[i][j].wonBy == 'o') {
+        drawWinningBoardO(rect);
+    } else if (boards[i][j].wonBy == 'd') {
+        drawWinningBoardD(rect);
+    } else if (boards[i][j].isActive) {
         DrawRectangleRounded(rect, 0.05, 8, subColorActive);
     } else if (boards[i][j].isHovered) {
         DrawRectangleRounded(rect, 0.05, 8, subColorHovered);
@@ -55,6 +93,47 @@ void Board::drawSubBoard(int i, int j) {
             DrawRectangleRounded(cell, 0.15, 6, toColor);
         }
     }
+}
+
+void Board::scaleShape(Vector2* points, int numPoints, float scale) {
+    for (int i = 0; i < numPoints; i++) {
+        std::cout << "Prev shape " << points[i].x << "," << points[i].y << "; ";
+        points[i] = Vector2Scale(points[i], scale);
+        std::cout << "New shape " << points[i].x << "," << points[i].y << "; " << std::endl;
+    }
+}
+
+void offsetShapeBy(Vector2* points, int num, Vector2 offset) {
+    for (int i = 0; i < num; i++) {
+        points[i] = Vector2Add(points[i], offset);
+    }
+}
+
+void Board::drawWinningBoardX(Rectangle rect) {
+    DrawRectangleRounded(rect, 0.05, 8, boardX);
+
+    offsetShapeBy(crossShapeAscend, 4, Vector2{rect.x, rect.y});
+    offsetShapeBy(crossShapeDescend, 4, Vector2{rect.x, rect.y});
+    DrawTriangleStrip(crossShapeAscend, 4, boardXSaturate);
+    DrawTriangleStrip(crossShapeDescend, 4, boardXSaturate);
+    offsetShapeBy(crossShapeAscend, 4, Vector2{-rect.x, -rect.y});
+    offsetShapeBy(crossShapeDescend, 4, Vector2{-rect.x, -rect.y});
+}
+
+void Board::drawWinningBoardO(Rectangle rect) {
+    DrawRectangleRounded(rect, 0.05, 8, boardO);
+
+    DrawCircle(rect.x + subBoardWidth/2.0f, rect.y + subBoardWidth/2.0f, subBoardWidth*0.45, boardOSaturate);
+    DrawCircle(rect.x + subBoardWidth/2.0f, rect.y + subBoardWidth/2.0f, subBoardWidth*0.35, boardO);
+
+}
+
+void Board::drawWinningBoardD(Rectangle rect) {
+    DrawRectangleRounded(rect, 0.05, 8, subColorActive);
+
+    offsetShapeBy(dashShape, 4, Vector2{rect.x, rect.y});
+    DrawTriangleStrip(dashShape, 4, cellBlank);
+    offsetShapeBy(dashShape, 4, Vector2{-rect.x, -rect.y});
 }
 
 
@@ -119,14 +198,18 @@ void Board::handleMouseClick(Vector2& mousePos) {
     if (isSelecting) {
         bool success = selectBoard(mousePos);
         if (success) isSelecting = false;
+        return;
     }
 
+    // use the play
+    Index activeBoard = getActiveBoard();
+    activateCell(mousePos, activeBoard.i, activeBoard.j);
 }
 
 bool Board::selectBoard(Vector2& mousePos) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            if (boards[i][j].isWon) continue;
+            if (boards[i][j].wonBy) continue;
 
             Rectangle box = getRectOfSubboard(i, j);
 
@@ -138,6 +221,50 @@ bool Board::selectBoard(Vector2& mousePos) {
         }
     }
     return false;
+}
+
+bool Board::activateCell(Vector2& mousePos, int i, int j) {
+    for (int ii = 0; ii < 3; ii++) {
+        for (int jj = 0; jj < 3; jj++) {
+
+            Rectangle box = getRectOfCell(i, j, ii, jj);
+
+            if (CheckCollisionPointRec(mousePos, box)) {
+                // dbg_cycleCell(i, j, ii, jj);
+                char* p_cell = &(boards[i][j].values[ii][jj]);
+                if (*p_cell != 0) return false;
+                // switch cells 
+                *p_cell = currentTurn;
+                if (currentTurn == 'x') {
+                    currentTurn = 'o';
+                } else {
+                    currentTurn = 'x';
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+Index Board::getActiveBoard() {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (boards[i][j].isActive) return Index {i, j};
+        }
+    }
+    return Index {-1, -1};
+}
+
+void Board::dbg_cycleCell(int boardi, int boardj, int celli, int cellj) {
+    char* p_cell = &(boards[boardi][boardj].values[celli][cellj]);
+    if (*p_cell == 0) {
+        *p_cell = 'x';
+    } else if (*p_cell == 'x') {
+        *p_cell = 'o';
+    } else {
+        *p_cell = 0;
+    }
 }
 
 std::ostream& operator << (std::ostream& stream, const Board& board) {
