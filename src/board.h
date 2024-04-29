@@ -17,14 +17,19 @@ struct SubBoard {
     char values[3][3] = {0};
     bool isHovered = false;
     bool isActive = false;
-    // char wonBy = '0';
     char wonBy = 0;
 };
 
 
 void offsetShapeBy(Vector2* points, int num, Vector2 offset);
+void printBoard(SubBoard& board);
 
 class Board {
+public:
+    char isGameWon = 0;
+    const Color cellX = colFromHex(0xc96767);
+    const Color cellO = colFromHex(0x6d84c9);
+    const Color cellBlank = colFromHexAlpha(0x5b5b61aa);
 
 private:
     const Color baseColor = colFromHex(0x3e3e3e);
@@ -32,9 +37,6 @@ private:
     const Color subColorActive = colFromHex(0x4b4b50);
     const Color subColorHovered = colFromHex(0x36363a);
 
-    const Color cellBlank = colFromHexAlpha(0x5b5b61aa);
-    const Color cellX = colFromHex(0xc96767);
-    const Color cellO = colFromHex(0x6d84c9);
     const Color boardX = colFromHex(0xa87676);
     const Color boardXSaturate = colFromHex(0xd13636);
     const Color boardO = colFromHex(0x697494);
@@ -56,6 +58,7 @@ private:
 
     char currentTurn = 'x';
     bool isSelecting = true;
+    
 
     SubBoard boards[3][3] {};
 
@@ -94,9 +97,12 @@ private:
     void updateMouseInput(Vector2& mousePos);
     void handleMouseClick(Vector2& mousePos);
     bool selectBoard(Vector2& mousePos);
-    bool activateCell(Vector2& mousePos, int i, int j);
-    void makeSelecting();
+    bool activateCell(Vector2& mousePos, int i, int j, Index& cellPicked);
     Index getActiveBoard();
+    char checkSubBoardWon(SubBoard& board);
+    char checkGameWon();
+    void moveBoard(Index current, Index cellPicked);
+    void makeSelecting();
     void dbg_cycleCell(int boardi, int boardj, int celli, int cellj);
 };
 
