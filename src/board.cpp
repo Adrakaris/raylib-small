@@ -19,10 +19,23 @@ void Board::setFont(Font& mainFont) {
 
 void Board::reset() {
     for (int i = 0; i < 3; i++) {
-        for (int j = 0; i < 3; i++) {
-            boards[i][j] = SubBoard();
+        for (int j = 0; j < 3; j++) {
+
+            SubBoard* b = &(boards[i][j]);
+            for (int ii = 0; ii < 3; ii++) {
+                for (int jj = 0; jj < 3; jj++) {
+                    b->values[ii][jj] = 0;
+                }
+            }
+            b->isActive = false;
+            b->isHovered = false;
+            b->wonBy = 0;
+
         }
     }
+    isGameWon = false;
+    currentTurn = 'x';
+    isSelecting = true;
 }
 
 
@@ -75,7 +88,7 @@ void Board::drawSubBoard(int i, int j) {
         DrawRectangleRounded(rect, 0.05, 8, subColorActive);
     } else if (boards[i][j].isHovered) {
         DrawRectangleRounded(rect, 0.05, 8, subColorHovered);
-    } else {
+    } else if (isSelecting) {
         DrawRectangleRounded(rect, 0.05, 8, subColor);
     }
 
@@ -124,7 +137,7 @@ void Board::drawWinningBoardO(Rectangle rect) {
     DrawRectangleRounded(rect, 0.05, 8, boardO);
 
     DrawCircle(rect.x + subBoardWidth/2.0f, rect.y + subBoardWidth/2.0f, subBoardWidth*0.45, boardOSaturate);
-    DrawCircle(rect.x + subBoardWidth/2.0f, rect.y + subBoardWidth/2.0f, subBoardWidth*0.35, boardO);
+    DrawCircle(rect.x + subBoardWidth/2.0f, rect.y + subBoardWidth/2.0f, subBoardWidth*0.3, boardO);
 
 }
 
@@ -203,7 +216,16 @@ void Board::handleMouseClick(Vector2& mousePos) {
 
     // use the play
     Index activeBoard = getActiveBoard();
-    activateCell(mousePos, activeBoard.i, activeBoard.j);
+    Index cellPicked;
+    if (activateCell(mousePos, activeBoard.i, activeBoard.j, cellPicked)) {
+        // do things with activation
+        SubBoard* thisBoard = &(boards[activeBoard.i][activeBoard.j]);
+        char won = checkSubBoardWon(*thisBoard);
+        std::cout << "Board won by: " << won << "\n";
+        thisBoard->wonBy = won;
+        isGameWon = checkGameWon();
+        moveBoard(activeBoard, cellPicked);
+    }
 }
 
 bool Board::selectBoard(Vector2& mousePos) {
@@ -223,7 +245,7 @@ bool Board::selectBoard(Vector2& mousePos) {
     return false;
 }
 
-bool Board::activateCell(Vector2& mousePos, int i, int j) {
+bool Board::activateCell(Vector2& mousePos, int i, int j, Index& cellPicked) {
     for (int ii = 0; ii < 3; ii++) {
         for (int jj = 0; jj < 3; jj++) {
 
@@ -240,11 +262,53 @@ bool Board::activateCell(Vector2& mousePos, int i, int j) {
                 } else {
                     currentTurn = 'x';
                 }
+                cellPicked.i = ii; cellPicked.j = jj;
                 return true;
             }
         }
     }
     return false;
+}
+
+char Board::checkSubBoardWon(SubBoard& board) {
+    // wins
+    // printBoard(board);
+    for (int i = 0; i < 3; i++) {
+        if (board.values[i][0] == board.values[i][1] && board.values[i][1] == board.values[i][2] && board.values[i][0] != 0) {
+            // std::cout << "horizontal equal\n";
+            return board.values[i][0];
+        }
+        if (board.values[0][i] == board.values[1][i] && board.values[1][i] == board.values[2][i] && board.values[0][i] != 0) {
+            // std::cout << "vertical equal\n";
+            return board.values[0][i];
+
+        }
+    }
+    if (board.values[0][0] == board.values[1][1] && board.values[1][1] == board.values[2][2] && board.values[1][1] != 0) {
+        return board.values[0][0];
+    }
+    if (board.values[0][2] == board.values[1][1] && board.values[1][1] == board.values[2][0] && board.values[1][1] != 0) {
+        return board.values[0][2];
+    }
+    // draws
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (board.values[i][j] == 0) {
+                return 0;  // still empty, no draw
+            }
+        }
+    }
+    return 'd';  // draw
+}
+
+char Board::checkGameWon() {
+    SubBoard temp;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            temp.values[i][j] = boards[i][j].wonBy;
+        }
+    }
+    return checkSubBoardWon(temp);
 }
 
 Index Board::getActiveBoard() {
@@ -255,6 +319,17 @@ Index Board::getActiveBoard() {
     }
     return Index {-1, -1};
 }
+
+void Board::moveBoard(Index current, Index cellPicked) {
+    // acitvate that board if not won, else activate any board
+    boards[current.i][current.j].isActive = false;
+    if (!boards[cellPicked.i][cellPicked.j].wonBy) {
+        boards[cellPicked.i][cellPicked.j].isActive = true;
+    } else {
+        isSelecting = true;
+    }
+}
+
 
 void Board::dbg_cycleCell(int boardi, int boardj, int celli, int cellj) {
     char* p_cell = &(boards[boardi][boardj].values[celli][cellj]);
@@ -271,6 +346,14 @@ std::ostream& operator << (std::ostream& stream, const Board& board) {
     char outString[128];
     sprintf(outString, "Board(width=%d, subwidth=%f, gap=%.2f)", board.boardWidth, board.subBoardWidth, board.boardGap);
     return (stream << outString); 
+}
+
+
+void printBoard(SubBoard& board) {
+    std::cout << "Board\n";
+    std::cout << board.values[0][0] << board.values[0][1] << board.values[0][2] << "\n";
+    std::cout << board.values[1][0] << board.values[1][1] << board.values[1][2] << "\n";
+    std::cout << board.values[2][0] << board.values[2][1] << board.values[2][2] << "\n";
 }
 
 // std::ostream& operator << (std::ostream stream, const SubBoard& subBoard) {
