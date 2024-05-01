@@ -1,19 +1,15 @@
 #include "gameScreen.h"
 
 
-const Color BG = colFromHex(0x2e2e2e);
-const Color BGTrans = colFromHexAlpha(0x3e3e3ebb);
-const Color button = colFromHexAlpha(0x5b5b61aa);
-const Color button_active = colFromHex(0x5b5b61);
-const Color green = colFromHex(0x00ff00);
-
 
 GameScreen::GameScreen(ScreenType* screenRef) : Screen(screenRef) {
-    font = LoadFontEx("assets/font/lora_var.TTF", 128, 0, 0);
-    GenTextureMipmaps(&font.texture);
 
+}
+
+
+void GameScreen::initialise(Font& font) {
+    this->font = font;
     board.setFont(font);
-    // std::cout << board << std::endl;
 }
 
 

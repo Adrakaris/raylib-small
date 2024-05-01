@@ -15,21 +15,23 @@ its target is the top left corner, so offset by minus half the screen wh will ce
 thisn seem to otherwise work the same though.
 */
 
-const Color BG = colFromHex(0x2e2e2e);
-const Color BGTrans = colFromHexAlpha(0x3e3e3ebb);
-const Color button = colFromHexAlpha(0x5b5b61aa);
-const Color button_active = colFromHex(0x5b5b61);
-const Color green = colFromHex(0x00ff00);
-
 
 class Game {
-
 private:
+
+    Font mainFont;
     ScreenType screenType = GAME;
+
     GameScreen gameScreen { &screenType };
     // title screen goes here...
 
 public:
+    Game() {
+        mainFont = LoadFontEx("assets/font/lora_var.TTF", 128, 0, 0);
+        GenTextureMipmaps(&mainFont.texture);
+        gameScreen.initialise(mainFont);
+    }
+
     void update(float dt) {
         switch (screenType) {
             case TITLE:

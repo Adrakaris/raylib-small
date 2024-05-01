@@ -20,6 +20,7 @@ public:
     GameScreen(ScreenType* screenRef);
     void update(float dt) override;
     void draw() override;
+    void initialise(Font& font);
     ~GameScreen();
 
 private:
