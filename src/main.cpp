@@ -50,6 +50,9 @@ public:
     }
 
     // gamescreen should be automatically deconstructed
+    ~Game() {
+        UnloadFont(mainFont);
+    }
 
 };
 

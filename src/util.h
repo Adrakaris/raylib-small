@@ -11,7 +11,7 @@ enum ScreenType {
     TITLE, GAME
 };
 
-// abstract class
+// screen class
 class Screen {
 protected:
     ScreenType* screenRef;  // this isnt very OOP but ... ah whatever
@@ -24,7 +24,18 @@ public:
     virtual void draw() = 0;
 };
 
+// text util functions
+
+// draw text centre-justified on the left-right -- the top-bottom is not centred!
+inline void DrawCentredText(const Font& font, const char* text, Vector2 position, float fontSize, float fontSpacing, Color tint) {
+    Vector2 bbox = MeasureTextEx(font, text, fontSize, fontSpacing);
+    position.x -= bbox.x / 2;  // centre the text by moving the position halfway left
+    DrawTextEx(font, text, position, fontSize, fontSpacing, tint);
+}
+
+
 // colour util functions
+#pragma region colour_util_functions
 
 constexpr uint32_t _mask_r = 0xff000000;
 constexpr uint32_t _mask_g = 0x00ff0000;
@@ -32,7 +43,7 @@ constexpr uint32_t _mask_b = 0x0000ff00;
 constexpr uint32_t _mask_a = 0x000000ff;
 
 // convert RGB (A = 255)
-inline Color colFromHex(std::uint32_t hexCode) {
+constexpr Color colFromHex(std::uint32_t hexCode) {
     // assuming input of the form #(00)RRGGBB rather than #RRGGBBAA
     unsigned char red = (unsigned char)((hexCode & _mask_g) >> 16);
     unsigned char green = (unsigned char)((hexCode & _mask_b) >> 8);
@@ -41,7 +52,7 @@ inline Color colFromHex(std::uint32_t hexCode) {
 }
 
 // convert RGBA
-inline Color colFromHexAlpha(std::uint32_t hexCode) {
+constexpr Color colFromHexAlpha(std::uint32_t hexCode) {
     unsigned char red = (unsigned char)((hexCode & _mask_r) >> 24);
     unsigned char green = (unsigned char)((hexCode & _mask_g) >> 16);
     unsigned char blue = (unsigned char)((hexCode & _mask_b) >> 8);
@@ -51,11 +62,12 @@ inline Color colFromHexAlpha(std::uint32_t hexCode) {
 
 // color definitions
 
-const Color textColorDark {210, 210, 210, 255};
-const Color BG = colFromHex(0x2e2e2e);
-const Color BGTrans = colFromHexAlpha(0x3e3e3ebb);
-const Color button = colFromHexAlpha(0x5b5b61aa);
-const Color button_active = colFromHex(0x5b5b61);
-const Color green = colFromHex(0x00ff00);
+constexpr Color textColorDark {210, 210, 210, 255};
+constexpr Color BG = colFromHex(0x2e2e2e);
+constexpr Color BGTrans = colFromHexAlpha(0x3e3e3ebb);
+constexpr Color button = colFromHexAlpha(0x5b5b61aa);
+constexpr Color button_active = colFromHex(0x5b5b61);
+constexpr Color green = colFromHex(0x00ff00);
 
+#pragma endregion
 

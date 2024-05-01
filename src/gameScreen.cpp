@@ -32,7 +32,7 @@ void GameScreen::update(float dt) {
     }
 
     // secret force exit control
-    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyDown(KEY_B)) {
+    if (IsKeyDown(KEY_LEFT_CONTROL) && IsKeyPressed(KEY_B)) {
         *screenRef = TITLE;
     }
 }
@@ -53,6 +53,7 @@ void GameScreen::drawMainCamera() {
 
     // draw title and stuff
     DrawTextEx(font, "Tic Tac Toe (Big)", Vector2{-120, -145}, 30, 0, textColorDark);
+    // DrawCentredText(font, "Tic Tac Toe (Big)", Vector2{0, -145}, 30, 0, textColorDark);
 
     board.draw();
 
@@ -60,19 +61,12 @@ void GameScreen::drawMainCamera() {
         DrawRectangleRounded(Rectangle{-180, -100, 360, 200}, 0.01, 8, BGTrans);
         
         if (board.isGameWon != 'd') {
-            const char* winText = "Winner Winner!";
-            Vector2 winTextDim = MeasureTextEx(font, winText, 40, 0);
-            DrawTextEx(font, winText, Vector2{-winTextDim.x/2.0f, -85}, 40, 0, textColorDark);
+            DrawCentredText(font, "Winner Winner!", Vector2{0, -85}, 40, 0, textColorDark);
             const char* whoWon = TextFormat("%c has won the game!", std::toupper(board.isGameWon));
-            Vector2 whoWonDim = MeasureTextEx(font, whoWon, 28, 0);
-            DrawTextEx(font, whoWon, Vector2{-whoWonDim.x/2.0f, -40}, 28, 0, board.isGameWon == 'x' ? board.cellX : board.cellO);
+            DrawCentredText(font, whoWon, Vector2{0, -40}, 28, 0, board.isGameWon == 'x' ? board.cellX : board.cellO);
         } else {
-            const char* winText = "Woah!";
-            Vector2 winTextDim = MeasureTextEx(font, winText, 40, 0);
-            DrawTextEx(font, winText, Vector2{-winTextDim.x/2.0f, -85}, 40, 0, textColorDark);
-            const char* whoWon = "It is a draw!";
-            Vector2 whoWonDim = MeasureTextEx(font, whoWon, 28, 0);
-            DrawTextEx(font, whoWon, Vector2{-whoWonDim.x/2.0f, -40}, 28, 0, textColorDark);
+            DrawCentredText(font, "Woah!", Vector2{0, -85}, 40, 0, textColorDark);
+            DrawCentredText(font, "It is a draw!", Vector2{0, -40}, 28, 0, textColorDark);
         }
 
         if (buttonHovered) {
@@ -92,5 +86,4 @@ void GameScreen::drawMainCamera() {
 
 
 GameScreen::~GameScreen() {
-    UnloadFont(font);
 }
