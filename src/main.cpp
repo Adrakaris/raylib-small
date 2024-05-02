@@ -21,7 +21,7 @@ class Game {
 private:
 
     Font mainFont;
-    ScreenType screenType = GAME;
+    ScreenType screenType = TITLE;
 
     GameScreen gameScreen { &screenType };
     TitleScreen titleScreen { &screenType };
