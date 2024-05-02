@@ -5,7 +5,7 @@
 Board::Board() {
     this->boardGap = (float)(boardWidth - 3*subBoardWidth) / 4.0f;
     this->halfWidth = boardWidth / 2.0f;
-    this->cellWidth = (subBoardWidth - 3*cellWidth) / 4.0f;
+    this->cellWidth = (subBoardWidth - 4*cellGap) / 3.0f;
     
     scaleShape(dashShape, 4, subBoardWidth);
     scaleShape(crossShapeAscend, 4, subBoardWidth);
