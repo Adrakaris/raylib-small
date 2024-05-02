@@ -38,11 +38,13 @@ public:
 // bool getState() method because callbacks are difficult in C++
 // note: have to inherit abstractswitch as public to get access to its methods
 class RectButton : public AbstractSwitch {
+public:
+    Rectangle rect;
+
 private:
     Color offColour;
     Color hoverColour;
     Color pressColour; 
-    Rectangle rect;
     float roundedness;
     float segments;
     bool hover = false;
@@ -52,9 +54,10 @@ public:
     // this button does support rounded rectangles, if roundedness is set above zero
     RectButton(MouseButton clickButton, Rectangle rect, 
                Color offColour, Color hoverColour, Color pressColour, 
-               float roundedness = 0, int segments = 8);
+               float roundedness = 0, int segments = 2);
     void update(Vector2 mousePos) override;
     void draw() override;
+    bool getState();
 };
 
 

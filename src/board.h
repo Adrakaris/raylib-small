@@ -27,6 +27,7 @@ void printBoard(SubBoard& board);
 class Board {
 public:
     char isGameWon = 0;
+
     const Color cellX = colFromHex(0xc96767);
     const Color cellO = colFromHex(0x6d84c9);
     const Color cellBlank = colFromHexAlpha(0x5b5b61aa);
@@ -81,6 +82,8 @@ public:
     void reset();
     void draw();
     void update(Vector2& mousePos);
+    Vector2 getTopLeftOfBoard();
+    Vector2 getBottomLeftOfBoard();
 
     friend std::ostream& operator << (std::ostream& stream, const Board& board);
 

@@ -3,6 +3,7 @@
 #include <raylib.h>
 #include "util.h"
 #include "board.h"
+#include "components.h"
 
 
 class GameScreen : Screen {
@@ -13,8 +14,10 @@ private:
     };
     Font font;
     Board board;
-    const Rectangle restartButton {-80,20,160,60};
-    bool buttonHovered = false;
+    RectButton restartButton { MOUSE_BUTTON_LEFT, Rectangle {-80,0,160,40}, button, button_active, button_down, 0.05, 8 };
+    RectButton quitButton { MOUSE_BUTTON_LEFT, Rectangle {-80, 45, 160, 40}, button, button_active, button_down, 0.05, 8};
+    RectButton playingQuitButton { MOUSE_BUTTON_LEFT, Rectangle {board.getBottomLeftOfBoard().x, board.getBottomLeftOfBoard().y-20, 32, 20},
+                                   button, button_active, button_down, 0.1, 8};
 
 public:
     GameScreen(ScreenType* screenRef);

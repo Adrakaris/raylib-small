@@ -16,7 +16,7 @@ private:
     };
     Font font;
 
-    RectButton playButton {MOUSE_BUTTON_LEFT, Rectangle{-80, -80, 160, 40}, button, button_active, green};
+    RectButton playButton {MOUSE_BUTTON_LEFT, Rectangle{-80, -90, 160, 40}, button, button_active, button_down};
 
 public:
     TitleScreen(ScreenType* screenRef);

@@ -66,8 +66,10 @@ constexpr Color textColorDark {210, 210, 210, 255};
 constexpr Color BG = colFromHex(0x2e2e2e);
 constexpr Color BGTrans = colFromHexAlpha(0x3e3e3ebb);
 constexpr Color button = colFromHexAlpha(0x5b5b61aa);
+// this is the button hover colour
 constexpr Color button_active = colFromHex(0x5b5b61);
 constexpr Color green = colFromHex(0x00ff00);
+constexpr Color button_down = colFromHex(0x41b812);
 
 #pragma endregion
 

@@ -75,6 +75,21 @@ void Board::drawInformation() {
 }
 
 
+Vector2 Board::getTopLeftOfBoard() {
+    return Vector2 {
+        boardOffset.x + halfWidth + boardGap,
+        boardOffset.y - halfWidth
+    };
+}
+
+Vector2 Board::getBottomLeftOfBoard() {
+    return Vector2 {
+        boardOffset.x + halfWidth + boardGap,
+        boardOffset.y + halfWidth
+    };
+}
+
+
 void Board::drawSubBoard(int i, int j) {
     Rectangle rect = getRectOfSubboard(i, j);
 

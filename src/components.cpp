@@ -35,3 +35,10 @@ void RectButton::draw() {
     }
 }
 
+
+// automatically turn off the switched
+bool RectButton::getState() {
+    bool tmp = switched;
+    switched = false;
+    return tmp;
+}

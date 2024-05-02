@@ -15,7 +15,7 @@ void TitleScreen::update(float dt) {
 
     playButton.update(realMousePos);
     if (playButton.getState()) {
-        std::cout << "Button is pressed!" << std::endl;
+        *screenRef = GAME;
     }
 
     // secret force exit control
@@ -32,6 +32,7 @@ void TitleScreen::draw() {
     DrawCentredText(font, "Tic Tac Toe (Big)", Vector2{0, -145}, 30, 0, textColorDark);
     // DrawCentredText(font, "This title screen is under construction", Vector2{0, -115}, 16, 0, textColorDark);
     playButton.draw();
+    DrawCentredText(font, "Standard Game", Vector2{0, playButton.rect.y + 7}, 26, 0, textColorDark);
 
 
     EndMode2D();

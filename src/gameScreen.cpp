@@ -2,9 +2,7 @@
 
 
 
-GameScreen::GameScreen(ScreenType* screenRef) : Screen(screenRef) {
-
-}
+GameScreen::GameScreen(ScreenType* screenRef) : Screen(screenRef) {}
 
 
 void GameScreen::initialise(Font& font) {
@@ -19,15 +17,21 @@ void GameScreen::update(float dt) {
 
     if (!board.isGameWon) {
         board.update(realMousePos);
-    } else {
-        if (CheckCollisionPointRec(realMousePos, restartButton)) {
-            buttonHovered = true;
-        } else {
-            buttonHovered = false;
+
+        playingQuitButton.update(realMousePos);
+        if (playingQuitButton.getState()) {
+            board.reset();
+            *screenRef = TITLE;
         }
 
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && buttonHovered) {
-            board.reset();
+    } else {
+        restartButton.update(realMousePos);
+        if (restartButton.getState()) { board.reset(); }
+
+        quitButton.update(realMousePos);
+        if (quitButton.getState()) { 
+            board.reset(); 
+            *screenRef = TITLE; 
         }
     }
 
@@ -52,7 +56,7 @@ void GameScreen::drawMainCamera() {
     BeginMode2D(mainCamera);
 
     // draw title and stuff
-    DrawTextEx(font, "Tic Tac Toe (Big)", Vector2{-120, -145}, 30, 0, textColorDark);
+    DrawTextEx(font, "Tic Tac Toe | 2P", Vector2{-120, -145}, 30, 0, textColorDark);
     // DrawCentredText(font, "Tic Tac Toe (Big)", Vector2{0, -145}, 30, 0, textColorDark);
 
     board.draw();
@@ -69,15 +73,14 @@ void GameScreen::drawMainCamera() {
             DrawCentredText(font, "It is a draw!", Vector2{0, -40}, 28, 0, textColorDark);
         }
 
-        if (buttonHovered) {
-            DrawRectangleRounded(restartButton, 0.05, 8, button_active);
-        } else {
-            DrawRectangleRounded(restartButton, 0.05, 8, button);
-        }
-        const char* restart = "Restart";
-        Vector2 restartDim = MeasureTextEx(font, restart, 40, 0);
-        DrawTextEx(font, restart, Vector2{-restartDim.x/2.0f, 30}, 40, 0, textColorDark);
+        restartButton.draw();
+        DrawCentredText(font, "Restart", Vector2{0, 7}, 26, 0, textColorDark);
+        quitButton.draw();
+        DrawCentredText(font, "Back to Menu", Vector2{0, 52}, 26, 0, textColorDark);
 
+    } else {
+        playingQuitButton.draw();
+        DrawCentredText(font, "Quit", Vector2{playingQuitButton.rect.x + playingQuitButton.rect.width/2.0f, playingQuitButton.rect.y+4}, 12, 0, textColorDark);
     }
 
     EndMode2D();
