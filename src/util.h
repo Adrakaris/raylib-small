@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <raylib.h>
+#include <raymath.h>
 #include <cstdint>
 
 // world coordinate scale (coordinate values from top to bottom)
@@ -72,4 +73,21 @@ constexpr Color green = colFromHex(0x00ff00);
 constexpr Color button_down = colFromHex(0x41b812);
 
 #pragma endregion
+#pragma region Shape and TExt
+
+
+
+// element wise multiplies an array of vector of points by scale
+void scaleShape(Vector2* points, int numPoints, float scale) {
+    for (int i = 0; i < numPoints; i++) {
+        // std::cout << "Prev shape " << points[i].x << "," << points[i].y << "; ";
+        points[i] = Vector2Scale(points[i], scale);
+        // std::cout << "New shape " << points[i].x << "," << points[i].y << "; " << std::endl;
+    }
+}
+
+
+#pragma endregion
+
+
 

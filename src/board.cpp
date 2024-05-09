@@ -1,8 +1,302 @@
 #include "board.h"
 
 
-
 Board::Board() {
+    scaleShape(dashShape, 4, subBoardWidth);
+    scaleShape(crossShapeAscend, 4, subBoardWidth);
+    scaleShape(crossShapeDescend, 4, subBoardWidth);
+}
+
+
+// font struct is small anyway and its a shallow copy so should be fine
+void Board::initialise(Font mainFont) {
+    this->mainFont = mainFont;
+}
+
+
+void Board::reset() {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+
+            SubBoard* b = &(boards[i][j]);
+            for (int ii = 0; ii < 3; ii++) {
+                for (int jj = 0; jj < 3; jj++) {
+                    b->values[ii][jj] = 0;
+                }
+            }
+            b->isActive = false;
+            b->isHovered = false;
+            b->wonBy = 0;
+
+        }
+    }
+    selecting = true;
+}
+
+
+void Board::updateHover(const Vector2& mousePos) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            Rectangle boardbox = getRectOfSubboard(Index{i, j});
+            if (CheckCollisionPointRec(mousePos, boardbox)) {
+                boards[i][j].isHovered = true;
+            } else {
+                boards[i][j].isHovered = false;
+            }
+        }
+    }
+}
+
+void Board::setActiveBoard(Index id) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            boards[i][j].isActive = false;
+        }
+    }
+
+    if (boards[id.i][id.j].wonBy) {
+        selecting = true;
+    } else {
+        boards[id.i][id.j].isActive = true;
+    }
+}
+
+Index Board::getActiveBoard() {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (boards[i][j].isActive) return Index {i, j};
+        }
+    }
+    return Index {-1, -1};
+}
+
+bool Board::setCell(Index onBoard, Index id, char player) {
+
+    char* p_cell = &(boards[onBoard.i][onBoard.j].values[id.i][id.j]);
+    if (*p_cell != 0) return false;
+    *p_cell = player;
+    return true;
+}
+
+bool Board::getHoveredBoard(const Vector2& mousePos, Index& out) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (boards[i][j].wonBy) continue;
+
+            Rectangle box = getRectOfSubboard(Index{i, j});
+            if (CheckCollisionPointRec(mousePos, box)) {
+                out.i = i; out.j = j;
+                return true;
+            }
+            
+        }
+    }
+    return false;
+}
+
+bool Board::getHoveredCell(const Vector2& mousePos, const Index& parent, Index& out) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            Rectangle box = getRectOfCell(parent, Index{i, j});
+            if (CheckCollisionPointRec(mousePos, box)) {
+                out.i = i; out.j = j;
+                return true;
+            }
+            
+        }
+    }
+}
+
+
+char Board::checkSubboardWon(Index id) {
+    SubBoard* p_board = &boards[id.i][id.j];
+    return checkSubboardWonHelper(*p_board);
+}
+
+char Board::checkGameWon() {
+
+}
+
+char Board::checkSubboardWonHelper(SubBoard& board) {
+    // wins
+    for (int i = 0; i < 3; i++) {
+        if (board.values[i][0] == board.values[i][1] && board.values[i][1] == board.values[i][2] && board.values[i][0] != 0) {
+            // std::cout << "horizontal equal\n";
+            return board.values[i][0];
+        }
+        if (board.values[0][i] == board.values[1][i] && board.values[1][i] == board.values[2][i] && board.values[0][i] != 0) {
+            // std::cout << "vertical equal\n";
+            return board.values[0][i];
+
+        }
+    }
+    if (board.values[0][0] == board.values[1][1] && board.values[1][1] == board.values[2][2] && board.values[1][1] != 0) {
+        return board.values[0][0];
+    }
+    if (board.values[0][2] == board.values[1][1] && board.values[1][1] == board.values[2][0] && board.values[1][1] != 0) {
+        return board.values[0][2];
+    }
+    // draws
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (board.values[i][j] == 0) {
+                return 0;  // still empty, no draw
+            }
+        }
+    }
+    return 'd';  // draw
+}
+
+
+char Board::checkGameWon() {
+    SubBoard temp;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            temp.values[i][j] = boards[i][j].wonBy;
+        }
+    }
+    return checkSubboardWonHelper(temp);
+}
+
+
+
+void Board::draw() {
+    DrawRectangle(boardOffset.x - halfWidth, boardOffset.y - halfWidth, boardWidth, boardWidth, baseColor);
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            drawSubBoard(Index{i, j});
+        }
+    }
+}
+
+void Board::drawSubBoard(Index id) {
+    Rectangle rect = getRectOfSubboard(id);
+    int i = id.i; int j = id.j;
+
+    if (boards[i][j].wonBy == 'x') {
+        drawWinningBoardX(rect);
+    } else if (boards[i][j].wonBy == 'o') {
+        drawWinningBoardO(rect);
+    } else if (boards[i][j].wonBy == 'd') {
+        drawWinningBoardD(rect);
+    } else if (boards[i][j].isActive) {
+        DrawRectangleRounded(rect, 0.05, 8, subColorActive);
+    } else if (boards[i][j].isHovered) {
+        DrawRectangleRounded(rect, 0.05, 8, subColorHovered);
+    } else if (isSelecting) {
+        DrawRectangleRounded(rect, 0.05, 8, subColor);
+    }
+
+    for (int ii = 0; ii < 3; ii++) {
+        for (int jj = 0; jj < 3; jj++) {
+            Rectangle cell = getRectOfCell(id, Index{ii, jj});
+            Color toColor;
+            switch (boards[i][j].values[ii][jj]) {
+                case 0: toColor = cellBlank; break;
+                case 'x': toColor = cellX; break;
+                case 'o': toColor = cellO; break;
+                default: toColor = cellBlank;
+            }
+            // std::cout << "[" << cell.x << " " << cell.y << " " << cell.width << " " << cell.height << " " << std::endl;
+            DrawRectangleRounded(cell, 0.15, 6, toColor);
+        }
+    }
+}
+
+void Board::drawWinningBoardX(Rectangle rect) {
+    DrawRectangleRounded(rect, 0.05, 8, boardX);
+
+    offsetShapeBy(crossShapeAscend, 4, Vector2{rect.x, rect.y});
+    offsetShapeBy(crossShapeDescend, 4, Vector2{rect.x, rect.y});
+    DrawTriangleStrip(crossShapeAscend, 4, boardXSaturate);
+    DrawTriangleStrip(crossShapeDescend, 4, boardXSaturate);
+    offsetShapeBy(crossShapeAscend, 4, Vector2{-rect.x, -rect.y});
+    offsetShapeBy(crossShapeDescend, 4, Vector2{-rect.x, -rect.y});
+}
+
+void Board::drawWinningBoardO(Rectangle rect) {
+    DrawRectangleRounded(rect, 0.05, 8, boardO);
+
+    DrawCircle(rect.x + subBoardWidth/2.0f, rect.y + subBoardWidth/2.0f, subBoardWidth*0.45, boardOSaturate);
+    DrawCircle(rect.x + subBoardWidth/2.0f, rect.y + subBoardWidth/2.0f, subBoardWidth*0.3, boardO);
+
+}
+
+void Board::drawWinningBoardD(Rectangle rect) {
+    DrawRectangleRounded(rect, 0.05, 8, subColorActive);
+
+    offsetShapeBy(dashShape, 4, Vector2{rect.x, rect.y});
+    DrawTriangleStrip(dashShape, 4, cellBlank);
+    offsetShapeBy(dashShape, 4, Vector2{-rect.x, -rect.y});
+}
+
+Rectangle Board::getRectOfSubboard(Index id) {
+    int i = id.i; int j = id.j;
+    float x = (boardGap-halfWidth+boardOffset.x) + i*(boardGap + subBoardWidth);
+    float y = (boardGap-halfWidth+boardOffset.y) + j*(boardGap + subBoardWidth);
+    return Rectangle {x, y, subBoardWidth, subBoardWidth};
+}
+
+Rectangle Board::getRectOfCell(Index parent, Index id) {
+    Rectangle pRect = getRectOfSubboard(parent);
+
+    float x = (pRect.x + cellGap) + id.i*(cellGap + cellWidth);
+    float y = (pRect.y + cellGap) + id.j*(cellGap + cellWidth);
+    return Rectangle {x, y, cellWidth, cellWidth};
+}
+
+
+
+
+
+
+
+
+// yes, this is ugly
+// but it fun
+std::ostream& operator << (std::ostream& stream, const Board& board) {
+    char buffer[32] = { 0 };
+    stream << "       == BOARD ==     \n";
+    stream << "-----------------------\n";  // 24 wide -- 5 inside
+    for (int row = 0; row < 3; row++) {
+        for (int subrow = 0; subrow < 3; subrow++) {
+            sprintf(buffer, "|%c|%c|%c| |%c|%c|%c| |%c|%c|%c|\n",
+                board.boards[row][0].values[subrow][0] == 0 ? ' ' : board.boards[row][0].values[subrow][0], 
+                board.boards[row][0].values[subrow][1] == 0 ? ' ' : board.boards[row][0].values[subrow][1], 
+                board.boards[row][0].values[subrow][2] == 0 ? ' ' : board.boards[row][0].values[subrow][2],
+                board.boards[row][1].values[subrow][0] == 0 ? ' ' : board.boards[row][1].values[subrow][0], 
+                board.boards[row][1].values[subrow][1] == 0 ? ' ' : board.boards[row][1].values[subrow][1], 
+                board.boards[row][1].values[subrow][2] == 0 ? ' ' : board.boards[row][1].values[subrow][2],
+                board.boards[row][2].values[subrow][0] == 0 ? ' ' : board.boards[row][2].values[subrow][0], 
+                board.boards[row][2].values[subrow][1] == 0 ? ' ' : board.boards[row][2].values[subrow][1], 
+                board.boards[row][2].values[subrow][2] == 0 ? ' ' : board.boards[row][2].values[subrow][2]
+            );
+            stream << buffer;               
+            
+        }
+        sprintf(buffer, "|Hov %d| |Hov %d| |Hov %d|\n", board.boards[row][0].isHovered, board.boards[row][1].isHovered, board.boards[row][2].isHovered);
+        stream << buffer;
+        sprintf(buffer, "|Act %d| |Act %d| |Act %d|\n", board.boards[row][0].isActive, board.boards[row][1].isActive, board.boards[row][2].isActive);
+        stream << buffer;
+        sprintf(buffer, "|Won %d| |Won %d| |Won %d|\n", 
+            board.boards[row][0].wonBy == 0 ? '_' : board.boards[row][0].wonBy, 
+            board.boards[row][1].wonBy == 0 ? '_' : board.boards[row][1].wonBy, 
+            board.boards[row][2].wonBy == 0 ? '_' : board.boards[row][2].wonBy
+        );
+        stream << buffer;
+        stream << "-----------------------\n"; 
+    }
+
+    return stream;
+
+}
+
+
+#pragma region old code (to be deleted)
+// ===== old code (to be deleted) =======================================================
+
+Board_::Board_() {
     this->boardGap = (float)(boardWidth - 3*subBoardWidth) / 4.0f;
     this->halfWidth = boardWidth / 2.0f;
     this->cellWidth = (subBoardWidth - 4*cellGap) / 3.0f;
@@ -12,12 +306,12 @@ Board::Board() {
     scaleShape(crossShapeDescend, 4, subBoardWidth);
 }
 
-void Board::setFont(Font& mainFont) {
+void Board_::setFont(Font& mainFont) {
     this->mainFont = mainFont;
 }
 
 
-void Board::reset() {
+void Board_::reset() {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
 
@@ -39,7 +333,7 @@ void Board::reset() {
 }
 
 
-void Board::draw() {
+void Board_::draw() {
     DrawRectangle(boardOffset.x - halfWidth, boardOffset.y - halfWidth, boardWidth, boardWidth, baseColor);
 
     // std::cout<<"new frame\n";
@@ -53,7 +347,7 @@ void Board::draw() {
 }
 
 
-void Board::drawInformation() {
+void Board_::drawInformation() {
     // set corner to right side
     Vector2 topLeft {
         boardOffset.x + halfWidth + boardGap,
@@ -75,14 +369,14 @@ void Board::drawInformation() {
 }
 
 
-Vector2 Board::getTopLeftOfBoard() {
+Vector2 Board_::getTopLeftOfBoard() {
     return Vector2 {
         boardOffset.x + halfWidth + boardGap,
         boardOffset.y - halfWidth
     };
 }
 
-Vector2 Board::getBottomLeftOfBoard() {
+Vector2 Board_::getBottomLeftOfBoard() {
     return Vector2 {
         boardOffset.x + halfWidth + boardGap,
         boardOffset.y + halfWidth
@@ -90,7 +384,7 @@ Vector2 Board::getBottomLeftOfBoard() {
 }
 
 
-void Board::drawSubBoard(int i, int j) {
+void Board_::drawSubBoard(int i, int j) {
     Rectangle rect = getRectOfSubboard(i, j);
 
     if (boards[i][j].wonBy == 'x') {
@@ -123,7 +417,7 @@ void Board::drawSubBoard(int i, int j) {
     }
 }
 
-void Board::scaleShape(Vector2* points, int numPoints, float scale) {
+void Board_::scaleShape(Vector2* points, int numPoints, float scale) {
     for (int i = 0; i < numPoints; i++) {
         std::cout << "Prev shape " << points[i].x << "," << points[i].y << "; ";
         points[i] = Vector2Scale(points[i], scale);
@@ -137,7 +431,7 @@ void offsetShapeBy(Vector2* points, int num, Vector2 offset) {
     }
 }
 
-void Board::drawWinningBoardX(Rectangle rect) {
+void Board_::drawWinningBoardX(Rectangle rect) {
     DrawRectangleRounded(rect, 0.05, 8, boardX);
 
     offsetShapeBy(crossShapeAscend, 4, Vector2{rect.x, rect.y});
@@ -148,7 +442,7 @@ void Board::drawWinningBoardX(Rectangle rect) {
     offsetShapeBy(crossShapeDescend, 4, Vector2{-rect.x, -rect.y});
 }
 
-void Board::drawWinningBoardO(Rectangle rect) {
+void Board_::drawWinningBoardO(Rectangle rect) {
     DrawRectangleRounded(rect, 0.05, 8, boardO);
 
     DrawCircle(rect.x + subBoardWidth/2.0f, rect.y + subBoardWidth/2.0f, subBoardWidth*0.45, boardOSaturate);
@@ -156,7 +450,7 @@ void Board::drawWinningBoardO(Rectangle rect) {
 
 }
 
-void Board::drawWinningBoardD(Rectangle rect) {
+void Board_::drawWinningBoardD(Rectangle rect) {
     DrawRectangleRounded(rect, 0.05, 8, subColorActive);
 
     offsetShapeBy(dashShape, 4, Vector2{rect.x, rect.y});
@@ -165,14 +459,14 @@ void Board::drawWinningBoardD(Rectangle rect) {
 }
 
 
-Rectangle Board::getRectOfSubboard(int i, int j) {
+Rectangle Board_::getRectOfSubboard(int i, int j) {
     float x = (boardGap-halfWidth+boardOffset.x) + i*(boardGap + subBoardWidth);
     float y = (boardGap-halfWidth+boardOffset.y) + j*(boardGap + subBoardWidth);
     return Rectangle {x, y, subBoardWidth, subBoardWidth};
 }
 
 
-Rectangle Board::getRectOfCell(int parent_i, int parent_j, int i, int j) {
+Rectangle Board_::getRectOfCell(int parent_i, int parent_j, int i, int j) {
     Rectangle parent = getRectOfSubboard(parent_i, parent_j);
 
     float x = (parent.x + cellGap) + i*(cellGap + cellWidth);
@@ -181,7 +475,7 @@ Rectangle Board::getRectOfCell(int parent_i, int parent_j, int i, int j) {
 }
 
 
-void Board::update(Vector2& mousePos) {
+void Board_::update(Vector2& mousePos) {
     updateMouseInput(mousePos);
 
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -194,7 +488,7 @@ void Board::update(Vector2& mousePos) {
     }
 }
 
-void Board::makeSelecting() {
+void Board_::makeSelecting() {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             boards[i][j].isActive = false;
@@ -204,7 +498,7 @@ void Board::makeSelecting() {
 }
 
 
-void Board::updateMouseInput(Vector2& mousePos) {
+void Board_::updateMouseInput(Vector2& mousePos) {
     
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -218,7 +512,7 @@ void Board::updateMouseInput(Vector2& mousePos) {
     }
 }
 
-void Board::handleMouseClick(Vector2& mousePos) {  
+void Board_::handleMouseClick(Vector2& mousePos) {  
     // multiple things with mouse click:
     // if is selecting, then use mouse to select a smaller board
     // otherwise, use mouse to play a piece on the board
@@ -243,7 +537,7 @@ void Board::handleMouseClick(Vector2& mousePos) {
     }
 }
 
-bool Board::selectBoard(Vector2& mousePos) {
+bool Board_::selectBoard(Vector2& mousePos) {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             if (boards[i][j].wonBy) continue;
@@ -260,7 +554,7 @@ bool Board::selectBoard(Vector2& mousePos) {
     return false;
 }
 
-bool Board::activateCell(Vector2& mousePos, int i, int j, Index& cellPicked) {
+bool Board_::activateCell(Vector2& mousePos, int i, int j, Index& cellPicked) {
     for (int ii = 0; ii < 3; ii++) {
         for (int jj = 0; jj < 3; jj++) {
 
@@ -285,7 +579,7 @@ bool Board::activateCell(Vector2& mousePos, int i, int j, Index& cellPicked) {
     return false;
 }
 
-char Board::checkSubBoardWon(SubBoard& board) {
+char Board_::checkSubBoardWon(SubBoard& board) {
     // wins
     // printBoard(board);
     for (int i = 0; i < 3; i++) {
@@ -316,7 +610,7 @@ char Board::checkSubBoardWon(SubBoard& board) {
     return 'd';  // draw
 }
 
-char Board::checkGameWon() {
+char Board_::checkGameWon() {
     SubBoard temp;
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -326,7 +620,7 @@ char Board::checkGameWon() {
     return checkSubBoardWon(temp);
 }
 
-Index Board::getActiveBoard() {
+Index Board_::getActiveBoard() {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             if (boards[i][j].isActive) return Index {i, j};
@@ -335,7 +629,7 @@ Index Board::getActiveBoard() {
     return Index {-1, -1};
 }
 
-void Board::moveBoard(Index current, Index cellPicked) {
+void Board_::moveBoard(Index current, Index cellPicked) {
     // acitvate that board if not won, else activate any board
     boards[current.i][current.j].isActive = false;
     if (!boards[cellPicked.i][cellPicked.j].wonBy) {
@@ -346,7 +640,7 @@ void Board::moveBoard(Index current, Index cellPicked) {
 }
 
 
-void Board::dbg_cycleCell(int boardi, int boardj, int celli, int cellj) {
+void Board_::dbg_cycleCell(int boardi, int boardj, int celli, int cellj) {
     char* p_cell = &(boards[boardi][boardj].values[celli][cellj]);
     if (*p_cell == 0) {
         *p_cell = 'x';
@@ -357,7 +651,7 @@ void Board::dbg_cycleCell(int boardi, int boardj, int celli, int cellj) {
     }
 }
 
-std::ostream& operator << (std::ostream& stream, const Board& board) {
+std::ostream& operator << (std::ostream& stream, const Board_& board) {
     char outString[128];
     sprintf(outString, "Board(width=%d, subwidth=%f, gap=%.2f)", board.boardWidth, board.subBoardWidth, board.boardGap);
     return (stream << outString); 
