@@ -78,7 +78,7 @@ constexpr Color button_down = colFromHex(0x41b812);
 
 
 // element wise multiplies an array of vector of points by scale
-void scaleShape(Vector2* points, int numPoints, float scale) {
+inline void scaleShape(Vector2* points, int numPoints, float scale) {
     for (int i = 0; i < numPoints; i++) {
         // std::cout << "Prev shape " << points[i].x << "," << points[i].y << "; ";
         points[i] = Vector2Scale(points[i], scale);

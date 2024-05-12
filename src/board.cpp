@@ -105,16 +105,13 @@ bool Board::getHoveredCell(const Vector2& mousePos, const Index& parent, Index& 
             
         }
     }
+    return false;
 }
 
 
 char Board::checkSubboardWon(Index id) {
     SubBoard* p_board = &boards[id.i][id.j];
     return checkSubboardWonHelper(*p_board);
-}
-
-char Board::checkGameWon() {
-
 }
 
 char Board::checkSubboardWonHelper(SubBoard& board) {
@@ -184,7 +181,7 @@ void Board::drawSubBoard(Index id) {
         DrawRectangleRounded(rect, 0.05, 8, subColorActive);
     } else if (boards[i][j].isHovered) {
         DrawRectangleRounded(rect, 0.05, 8, subColorHovered);
-    } else if (isSelecting) {
+    } else if (selecting) {
         DrawRectangleRounded(rect, 0.05, 8, subColor);
     }
 
