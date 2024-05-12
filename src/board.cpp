@@ -155,6 +155,10 @@ char Board::checkGameWon() {
     return checkSubboardWonHelper(temp);
 }
 
+void Board::markWonBy(Index id, char player) {
+    boards[id.i][id.j].wonBy = player;
+}
+
 
 
 void Board::draw() {
@@ -247,18 +251,15 @@ Rectangle Board::getRectOfCell(Index parent, Index id) {
 
 
 
-
-
-
 // yes, this is ugly
 // but it fun
 std::ostream& operator << (std::ostream& stream, const Board& board) {
-    char buffer[32] = { 0 };
-    stream << "       == BOARD ==     \n";
-    stream << "-----------------------\n";  // 24 wide -- 5 inside
+    char buffer[40] = { 0 };
+    stream << "      == BOARD ==    \n";
+    stream << "---------------------\n";  // 24 wide -- 5 inside
     for (int row = 0; row < 3; row++) {
         for (int subrow = 0; subrow < 3; subrow++) {
-            sprintf(buffer, "|%c|%c|%c| |%c|%c|%c| |%c|%c|%c|\n",
+            sprintf(buffer, "|%c|%c|%c||%c|%c|%c||%c|%c|%c|\n",
                 board.boards[row][0].values[subrow][0] == 0 ? ' ' : board.boards[row][0].values[subrow][0], 
                 board.boards[row][0].values[subrow][1] == 0 ? ' ' : board.boards[row][0].values[subrow][1], 
                 board.boards[row][0].values[subrow][2] == 0 ? ' ' : board.boards[row][0].values[subrow][2],
@@ -272,17 +273,17 @@ std::ostream& operator << (std::ostream& stream, const Board& board) {
             stream << buffer;               
             
         }
-        sprintf(buffer, "|Hov %d| |Hov %d| |Hov %d|\n", board.boards[row][0].isHovered, board.boards[row][1].isHovered, board.boards[row][2].isHovered);
+        sprintf(buffer, "|Hov %d||Hov %d||Hov %d|\n", board.boards[row][0].isHovered, board.boards[row][1].isHovered, board.boards[row][2].isHovered);
         stream << buffer;
-        sprintf(buffer, "|Act %d| |Act %d| |Act %d|\n", board.boards[row][0].isActive, board.boards[row][1].isActive, board.boards[row][2].isActive);
+        sprintf(buffer, "|Act %d||Act %d||Act %d|\n", board.boards[row][0].isActive, board.boards[row][1].isActive, board.boards[row][2].isActive);
         stream << buffer;
-        sprintf(buffer, "|Won %d| |Won %d| |Won %d|\n", 
+        sprintf(buffer, "|Won %c||Won %c||Won %c|\n", 
             board.boards[row][0].wonBy == 0 ? '_' : board.boards[row][0].wonBy, 
             board.boards[row][1].wonBy == 0 ? '_' : board.boards[row][1].wonBy, 
             board.boards[row][2].wonBy == 0 ? '_' : board.boards[row][2].wonBy
         );
         stream << buffer;
-        stream << "-----------------------\n"; 
+        stream << "---------------------\n"; 
     }
 
     return stream;

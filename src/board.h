@@ -73,7 +73,7 @@ private:
 
     Font mainFont;
     SubBoard boards[3][3] {};
-    bool selecting;
+    bool selecting = true;
     // char isGameWon = 0;
 
 public:
@@ -102,6 +102,8 @@ public:
     char checkSubboardWon(Index id);
     // checks if the game is won, returns 'x', 'o', 'd' or  (0)
     char checkGameWon();
+    // marks a subboard as won by a player 'x', 'o', 'd'
+    void markWonBy(Index id, char player);
 
 private:
     void drawSubBoard(Index id);

@@ -4,6 +4,8 @@
 void StandardScreen::initialise(Font font) {
     this->font = font;
     board.initialise(font);
+
+    // printf("BoardLB %lf %lf\n", board.leftsideBottom.x, board.leftsideBottom.y);
 }
 
 
@@ -73,6 +75,7 @@ void StandardScreen::handleMouseClick(Vector2& mousePos) {
     if (!board.setCell(active, idx, turn)) return;
 
     if (char won = board.checkSubboardWon(active)) {
+        board.markWonBy(active, won);
         std::cout << "Sub board won by: " << won << "\n";
         std::cout << board << std::endl;
         winner = board.checkGameWon();

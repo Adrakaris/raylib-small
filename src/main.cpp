@@ -7,6 +7,7 @@
 // #include "board.h"
 #include "gameScreen.h"
 #include "titleScreen.h"
+#include "standardScreen.h"
 
 /*
 Camera notes
@@ -23,14 +24,14 @@ private:
     Font mainFont;
     ScreenType screenType = TITLE;
 
-    GameScreen gameScreen { &screenType };
+    StandardScreen standardGameScreen { &screenType };
     TitleScreen titleScreen { &screenType };
 
 public:
     Game() {
         mainFont = LoadFontEx("assets/font/lora_var.TTF", 128, 0, 0);
         GenTextureMipmaps(&mainFont.texture);
-        gameScreen.initialise(mainFont);
+        standardGameScreen.initialise(mainFont);
         titleScreen.initialise(mainFont);
     }
 
@@ -40,7 +41,7 @@ public:
                 // std::cout << "I detect I've been put into title screen mode. I don't have one of those." << std::endl;
                 titleScreen.update(dt); break;
             case GAME:
-                gameScreen.update(dt);
+                standardGameScreen.update(dt);
         }
     }
 
@@ -49,7 +50,7 @@ public:
             case TITLE:
                 titleScreen.draw(); break;
             case GAME:
-                gameScreen.draw();
+                standardGameScreen.draw();
         }
     }
 
